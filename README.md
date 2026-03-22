@@ -1,0 +1,1 @@
+# Segmenta-o-Automatizada-de-Imagens-M-dicas
