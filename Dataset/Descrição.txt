@@ -1,0 +1,7 @@
+Origem dos dados: Geert Litjens, (2023). PROMISE12: Data from the MICCAI Grand Challenge: Prostate MR Image Segmentation 2012 [Data set]. In Medical Image Analysis (Vol. 18, Número 2, p. 359–373). Zenodo. https://doi.org/10.5281/zenodo.8026660
+
+Formato: Arquivos MetaImage (.mhd) e dados binários (.raw).
+
+Divisão: Pastas de Treinamento e Teste.
+
+Conteúdo: Imagens 3D e suas respectivas máscaras de segmentação (ex: Case00_segmentation.mhd).
