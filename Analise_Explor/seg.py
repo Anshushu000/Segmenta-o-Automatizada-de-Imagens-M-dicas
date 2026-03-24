@@ -28,50 +28,33 @@ import SimpleITK as sitk
 import matplotlib.pyplot as plt
 import numpy as np
 
-# 1. Carregar a imagem médica
-caminho_arquivo = "Case00.mhd" # Nome do arquivo que você subiu
+caminho_arquivo = "Case00.mhd"
 imagem_itk = sitk.ReadImage(caminho_arquivo)
-# 2. Transformar em uma lista de números (Array) que o Python entende
 numpy_img = sitk.GetArrayFromImage(imagem_itk)
-
-# 3. Mostrar informações básicas (isso é a análise exploratória!)
-print(f"Tamanho do volume: {numpy_img.shape}") # Ex: (20 fatias, 320 altura, 320 largura)
+print(f"Tamanho do volume: {numpy_img.shape}")
 print(f"Valor máximo de cor: {np.max(numpy_img)}")
 
-# 4. Mostrar a fatia do meio do exame
-fatia_do_meio = numpy_img[10] # Pega a fatia número 10
-
+fatia_do_meio = numpy_img[10]
 plt.figure(figsize=(10, 5))
 plt.subplot(1, 2, 1)
 plt.imshow(fatia_do_meio, cmap='gray')
 plt.title("Visualização da Fatia 10")
-
 plt.subplot(1, 2, 2)
 plt.hist(numpy_img.flatten(), bins=50, color='blue')
 plt.title("Distribuição de Tons (Histograma)")
 plt.show()
 
-# 1. Carregar a imagem original e a segmentação
 img_original = sitk.ReadImage("Case00.mhd")
 img_mask = sitk.ReadImage("Case00_segmentation.mhd")
-
-# 2. Converter ambas para números (Numpy)
 array_original = sitk.GetArrayFromImage(img_original)
 array_mask = sitk.GetArrayFromImage(img_mask)
-
-# 3. Escolher uma fatia que tenha algo desenhado (geralmente no meio do volume)
 fatia = 10
-
-# 4. Criar a visualização
 plt.figure(figsize=(12, 6))
-# Lado Esquerdo: Imagem Original
 plt.subplot(1, 2, 1)
 plt.imshow(array_original[fatia], cmap='gray')
 plt.title(f"Imagem Original - Fatia {fatia}")
 plt.axis('off')
 
-# Lado Direito: Máscara de Segmentação
-# Usamos 'jet' ou 'inferno' para a máscara brilhar no fundo preto
 plt.subplot(1, 2, 2)
 plt.imshow(array_mask[fatia], cmap='jet')
 plt.title(f"Segmentação (Gabarito) - Fatia {fatia}")
@@ -79,26 +62,21 @@ plt.axis('off')
 
 plt.show()
 
-# 5. Análise Exploratória: Quais cores (labels) existem na máscara?
-labels = np.unique(array_mask)
-print(f"Valores encontrados na máscara: {labels}")
-
 plt.imshow(array_original[fatia], cmap='gray')
-plt.imshow(array_mask[fatia], cmap='jet', alpha=0.5) # alpha 0.5 deixa transparente
+plt.imshow(array_mask[fatia], cmap='jet', alpha=0.5)
 plt.title("Máscara sobreposta à Imagem Original")
 plt.show()
 
-diretorio = "Data"
+labels = np.unique(array_mask)
+print(f"Valores encontrados na máscara: {labels}")
 
+diretorio = "Data"
 lista_metadados = []
 volumes_segmentados = []
-
 for arquivo in sorted(os.listdir(diretorio)):
     if arquivo.endswith(".mhd"):
         caminho_completo = os.path.join(diretorio, arquivo)
         img = sitk.ReadImage(caminho_completo)
-
-        # Se for imagem original (não é segmentação)
         if "segmentation" not in arquivo:
             lista_metadados.append({
                 "Caso": arquivo.replace(".mhd", ""),
@@ -107,39 +85,36 @@ for arquivo in sorted(os.listdir(diretorio)):
                 "Slices (Z)": img.GetDepth(),
                 "Voxel_Size_Z": round(img.GetSpacing()[2], 3)
             })
-
-        # Se for máscara de segmentação
         else:
             mask_array = sitk.GetArrayFromImage(img)
             pixels_alvo = np.count_nonzero(mask_array)
             volumes_segmentados.append(pixels_alvo)
 
-# --- ANÁLISE 1: Tabela de Consistência ---
+# Tabela de Consistência
 df_stats = pd.DataFrame(lista_metadados)
-print("\n### RESUMO ESTATÍSTICO DO DATASET ###")
-display(df_stats.describe()) # Mostra média, min, max de todos os casos
+print("\n RESUMO ESTATÍSTICO DO DATASET ")
+display(df_stats.describe())
 
-# --- ANÁLISE 2: Gráfico de Volume das Segmentações ---
+# Gráfico de Volume das Segmentações
 plt.figure(figsize=(10, 5))
 plt.subplot(1, 2, 1)
 plt.boxplot(volumes_segmentados)
 plt.title("Distribuição do Volume do Alvo\n(Total de pixels por caso)")
 plt.ylabel("Contagem de Pixels")
 
-# --- ANÁLISE 3: Histograma de Comparação (Sorteia 3 casos) ---
+# Histograma de Comparação (Sorteia 3 casos)
 plt.subplot(1, 2, 2)
 casos_exemplo = df_stats["Caso"].sample(3).values
 for caso in casos_exemplo:
     img_ex = sitk.ReadImage(os.path.join(diretorio, f"{caso}.mhd"))
     arr_ex = sitk.GetArrayFromImage(img_ex)
     plt.hist(arr_ex.flatten(), bins=50, histtype='step', label=caso)
-
 plt.title("Comparação de Brilho\n(Histogramas de 3 casos)")
 plt.legend()
 plt.tight_layout()
 plt.show()
 
-# --- ANÁLISE 3: Histograma de Comparação (Sorteia 3 casos) ---
+# Histograma de Comparação (Sorteia 3 casos)
 plt.subplot(1, 2, 2)
 casos_exemplo = df_stats["Caso"].sample(3).values
 for caso in casos_exemplo:
